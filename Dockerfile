@@ -8,8 +8,7 @@ FROM debian AS runner
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/gotty .
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-
-# create self-signed certificate for gotty
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /app/key.pem -out /app/cert.pem -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=testyy.com"
-CMD ["./gotty", "-w", "--tls", "--tls-crt", "/app/cert.pem", "--tls-key", "/app/key.pem", "./main"]
+COPY ./entry.sh .
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/* && chmod +x /app/entry.sh
+EXPOSE 8080
+ENTRYPOINT ["/app/entry.sh"]
