@@ -6,36 +6,46 @@ import (
 	"errors"
 	"fmt"
 	ggpt "github.com/sashabaranov/go-gpt3"
+	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"strconv"
 )
 
 const (
-	MaxRoundPreserve int    = 3
-	ApiKey           string = "<api-key>"
+	DefaultMaxRoundPreserve int = 3
 )
 
 func main() {
+	apiKey := os.Getenv("GPT3_API_KEY")
+	maxRoundPreserve := DefaultMaxRoundPreserve
+	if m := os.Getenv("GPT3_MAX_ROUND_PRESERVE"); m != "" {
+		if t, e := strconv.Atoi(m); e == nil {
+			maxRoundPreserve = t
+		}
+	}
 	ctx := context.Background()
-	c := ggpt.NewClient(ApiKey)
+	c := ggpt.NewClient(apiKey)
 	msgs := []ggpt.ChatCompletionMessage{}
 	println("Bootstrap the chat bot with: ")
 	bootstrap := getInputFromStdin()
-	msgs = append(msgs, ggpt.ChatCompletionMessage{Role: "system", Content: bootstrap})
 	println("Ok, now you can start chatting with the bot: ")
 	for {
-		print("👩: ")
+		print("👩 : ")
 		userInput := getInputFromStdin()
 		msgs = append(msgs, ggpt.ChatCompletionMessage{Role: "user", Content: userInput})
-		if len(msgs) > MaxRoundPreserve*2 {
-			msgs = msgs[len(msgs)-MaxRoundPreserve*2:]
+		if len(msgs) > maxRoundPreserve*2 {
+			msgs = msgs[len(msgs)-maxRoundPreserve*2:]
 		}
 		req := ggpt.ChatCompletionRequest{
 			Model:    ggpt.GPT3Dot5Turbo,
-			Messages: msgs,
+			Messages: append([]ggpt.ChatCompletionMessage{{Role: "system", Content: bootstrap}}, msgs...),
 			Stream:   true,
 		}
-		_, chatResp := generateResponse(c, &req, ctx)
+		e, chatResp := generateResponse(c, &req, ctx)
+		if e != nil {
+			logrus.Error(e)
+		}
 		msgs = append(msgs, ggpt.ChatCompletionMessage{Role: "assistant", Content: chatResp})
 	}
 }
@@ -54,7 +64,7 @@ func getInputFromStdin() string {
 }
 
 func generateResponse(c *ggpt.Client, req *ggpt.ChatCompletionRequest, ctx context.Context) (error, string) {
-	print("🤖: ")
+	print("🤖 : ")
 	ca := ""
 	stream, err := c.CreateChatCompletionStream(ctx, *req)
 	if err != nil {
