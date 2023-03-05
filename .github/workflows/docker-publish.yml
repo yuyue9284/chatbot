@@ -21,6 +21,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    environment: Image build and push
     permissions:
       contents: read
       packages: write
