@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"chatgpt/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
 )
 
@@ -33,7 +35,8 @@ func main() {
 	for {
 		print("👩 : ")
 		userInput := getInputFromStdin()
-		msgs = append(msgs, ggpt.ChatCompletionMessage{Role: "user", Content: userInput})
+		prompt := getPrompt(userInput)
+		msgs = append(msgs, ggpt.ChatCompletionMessage{Role: "user", Content: prompt})
 		if len(msgs) > maxRoundPreserve*2 {
 			msgs = msgs[len(msgs)-maxRoundPreserve*2:]
 		}
@@ -61,6 +64,20 @@ func getInputFromStdin() string {
 		input += fmt.Sprintf("%s\n", line)
 	}
 	return input
+}
+
+func getPrompt(rawQuery string) string {
+	searchPattern := ">search (.*)"
+	if ok, _ := regexp.MatchString(searchPattern, rawQuery); ok {
+		query := regexp.MustCompile(searchPattern).FindStringSubmatch(rawQuery)[1]
+		prompt, err := utils.Search(query, 3)
+		if err != nil {
+			logrus.Error(err)
+			return rawQuery
+		}
+		return prompt
+	}
+	return rawQuery
 }
 
 func generateResponse(c *ggpt.Client, req *ggpt.ChatCompletionRequest, ctx context.Context) (error, string) {
