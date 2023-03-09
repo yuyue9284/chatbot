@@ -20,7 +20,11 @@ const (
 )
 
 func init() {
-	logrus.SetLevel(logrus.DebugLevel)
+	if os.Getenv("DEBUG") != "" {
+		logrus.SetLevel(logrus.DebugLevel)
+	} else {
+		logrus.SetLevel(logrus.InfoLevel)
+	}
 }
 
 func main() {
