@@ -10,7 +10,7 @@ func Search(query string, topN int) (string, error) {
 	promptTemplate := "Web search results:\n%s\nCurrent date: %s\n\nInstructions: Using the provided web search results, write a comprehensive reply to the given query. Make sure to cite results using [[number](URL)] notation after the reference. If the provided search results refer to multiple subjects with the same name, write separate answers for each subject.\nQuery: %s"
 	result := ""
 	// Construct the DuckDuckGo search URL
-	url := fmt.Sprintf("https://duckduckgo.com/html/?q=%s&kl=wt-wt&t=h_&ia=web", query)
+	url := fmt.Sprintf("https://duckduckgo.com/html/?q=%s&kl=wt-wt&kp=-2&kc=-1&kf=1&t=h_&ia=web", query)
 
 	// Fetch the search results HTML
 	doc, err := goquery.NewDocument(url)
