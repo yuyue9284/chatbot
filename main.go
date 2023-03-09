@@ -6,17 +6,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	ggpt "github.com/sashabaranov/go-gpt3"
-	"github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"regexp"
 	"strconv"
+
+	ggpt "github.com/sashabaranov/go-gpt3"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	DefaultMaxRoundPreserve int = 3
 )
+
+func init() {
+	logrus.SetLevel(logrus.DebugLevel)
+}
 
 func main() {
 	apiKey := os.Getenv("GPT3_API_KEY")
@@ -35,6 +40,7 @@ func main() {
 	for {
 		print("👩 : ")
 		userInput := getInputFromStdin()
+		logrus.Infof("user input: %s", userInput)
 		prompt := getPrompt(userInput)
 		msgs = append(msgs, ggpt.ChatCompletionMessage{Role: "user", Content: prompt})
 		if len(msgs) > maxRoundPreserve*2 {
@@ -67,7 +73,7 @@ func getInputFromStdin() string {
 }
 
 func getPrompt(rawQuery string) string {
-	searchPattern := ">search (.*)"
+	searchPattern := "> *search (.*)"
 	if ok, _ := regexp.MatchString(searchPattern, rawQuery); ok {
 		query := regexp.MustCompile(searchPattern).FindStringSubmatch(rawQuery)[1]
 		prompt, err := utils.Search(query, 3)
