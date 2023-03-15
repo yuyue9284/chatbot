@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
-	github.com/sashabaranov/go-gpt3 v1.3.3
+	github.com/sashabaranov/go-openai v1.5.1
 	github.com/sirupsen/logrus v1.9.0
 )
 

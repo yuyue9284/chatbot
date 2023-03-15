@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strconv"
 
-	ggpt "github.com/sashabaranov/go-gpt3"
+	ggpt "github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,11 +19,18 @@ const (
 	DefaultMaxRoundPreserve int = 3
 )
 
+// default stop reading if content is ctrl+]
+var inputStopToken = "\x1d"
+
 func init() {
 	if os.Getenv("DEBUG") != "" {
 		logrus.SetLevel(logrus.DebugLevel)
 	} else {
 		logrus.SetLevel(logrus.InfoLevel)
+	}
+
+	if os.Getenv("INPUT_STOP_TOKEN") != "" {
+		inputStopToken = os.Getenv("INPUT_STOP_TOKEN")
 	}
 }
 
@@ -68,8 +75,7 @@ func getInputFromStdin() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
-		// break if content is ctrl+]
-		if line == "\x1d" {
+		if line == inputStopToken {
 			break
 		}
 		input += fmt.Sprintf("%s\n", line)
