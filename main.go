@@ -68,7 +68,8 @@ func getInputFromStdin() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if len(line) == 0 {
+		// break if content is ctrl+]
+		if line == "\x1d" {
 			break
 		}
 		input += fmt.Sprintf("%s\n", line)
